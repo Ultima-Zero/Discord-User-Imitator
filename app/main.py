@@ -22,7 +22,18 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    '''typical Discord on_message event listener'''
+    '''
+    Discord on_message event listener
+
+    Takes in the Discord message object and verifies
+    that is not a bot message, or a DM message
+
+    It will then delete the original message, randomly
+    select a non bot member from the guild, create a
+    webhook within that channel, and send that re-send
+    that message as the randomly selected member
+    (includes display name and avatar)
+    '''
 
     # return instantly if message author is a bot or message doesn't originate from a guild
     if message.author.bot or message.guild is None:
