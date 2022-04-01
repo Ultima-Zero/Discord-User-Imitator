@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from disnake import Client, Webhook, Intents
 
 
+
 intents = Intents.default()
 intents.members = True
 bot = Client(intents=intents)
@@ -32,17 +33,18 @@ async def on_message(message):
     (includes display name and avatar)
     """
 
-    # return instantly if message author is a bot or message doesn't originate from a guild
+    # return instantly if message author is a bot,
+    # message has attachments or message does not originate from guild
     if message.author.bot or message.guild is None:
         return
 
-    author = message.author
+    if message.content is None:
+        return
+
     content = message.content
+    author = message.author
     channel = message.channel
     guild = message.guild
-
-    # delete the original message
-    await message.delete()
 
     # create a list of human members from the message guild
     members = [
@@ -54,10 +56,19 @@ async def on_message(message):
     avatar = member.display_avatar.url
     name = member.display_name
 
-    # create the webhook and send the content as a webhook message, then delete the webhook
-    webhook = await channel.create_webhook(name="April Fools")
-    await webhook.send(content=content, username=name, avatar_url=avatar)
-    await webhook.delete()
+    # get webhooks from the message channel if webhook name == April Fools
+    apr_fools_webhook = [wh for wh in await channel.webhooks() if wh.name == 'April Fools'][0]
+
+    # if no webhook with name April Fools, create it
+    if not apr_fools_webhook:
+        apr_fools_webhook = await channel.create_webhook(name='April Fools')
+
+    # delete the original message
+    await message.delete()
+
+    # send the message content to the webhook
+    await apr_fools_webhook.send(content=content, username=name, avatar_url=avatar)
+
 
 
 load_dotenv()
