@@ -5,6 +5,7 @@ from random import choice
 # Third party imports -- installed via requirements.txt
 from dotenv import load_dotenv
 from disnake import Client, Webhook, Intents
+from datetime import datetime
 
 
 
@@ -41,6 +42,8 @@ async def on_message(message):
     if message.content is None:
         return
 
+    print(datetime.now().strftime("%Y-%m-%d %H:%M"))
+
     content = message.content
     author = message.author
     channel = message.channel
@@ -55,21 +58,28 @@ async def on_message(message):
     member = choice(members)
     avatar = member.display_avatar.url
     name = member.display_name
+    print(f'Random member selected: {name}.')
 
     # get webhooks from the message channel if webhook name == April Fools
-    apr_fools_webhook = [wh for wh in await channel.webhooks() if wh.name == 'April Fools'][0]
+    apr_fools_webhook = [wh for wh in await channel.webhooks() if wh.name == 'April Fools']
 
-    # if no webhook with name April Fools, create it
-    if not apr_fools_webhook:
+    if len(apr_fools_webhook) > 0:
+        apr_fools_webhook = apr_fools_webhook[0]
+    elif len(apr_fools_webhook) == 0:
+        print('April Fools webhook not found, creating...')
         apr_fools_webhook = await channel.create_webhook(name='April Fools')
 
+
     # delete the original message
+    print('Deleting original message...')
     await message.delete()
 
     # send the message content to the webhook
+    print("Sending webhook content to channel...")
     await apr_fools_webhook.send(content=content, username=name, avatar_url=avatar)
 
 
 
 load_dotenv()
 bot.run(getenv("TOKEN"))
+
